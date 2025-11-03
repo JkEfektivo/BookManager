@@ -1,0 +1,169 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@using BookManager.Services
+@using BookManager.Models
+@inject ISessionService SessionService
+@inject IBookService BookService
+@inject NavigationManager Navigation
+
+@if (!SessionService.IsAuthenticated)
+{
+    <div class="alert alert-danger mt-5" role="alert">
+        <div class="container">
+            <h4>Dostęp zabroniony</h4>
+            <p>Musisz się zalogować aby zobaczyć tę stronę.</p>
+            <a href="/login" class="btn btn-primary">Powrót do logowania</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1>Moja Biblioteka</h1>
+                <p class="text-muted">Witaj, @SessionService.CurrentUser!</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-primary me-2" @onclick="NavigateToAddBook">
+                    <span class="me-2">+</span>Dodaj nową
+                </button>
+                <button class="btn btn-danger" @onclick="HandleLogout">Wyloguj się</button>
+            </div>
+        </div>
+
+        @if (books == null)
+        {
+            <div class="alert alert-info" role="alert">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Ładowanie biblioteki...
+            </div>
+        }
+        else if (books.Count == 0)
+        {
+            <div class="alert alert-warning" role="alert">
+                <strong>Brak książek</strong> - Twoja biblioteka jest pusta.
+                <a href="/addbook" class="alert-link">Dodaj pierwszą książkę!</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tytuł</th>
+                            <th>Autor</th>
+                            <th class="text-center" style="width: 100px;">Rok</th>
+                            <th>Data dodania</th>
+                            <th class="text-center" style="width: 150px;">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in books)
+                        {
+                            <tr>
+                                <td><strong>@book.Title</strong></td>
+                                <td>@book.Author</td>
+                                <td class="text-center">@book.YearPublished</td>
+                                <td>@book.DateAdded.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning me-2"
+                                            @onclick="() => NavigateToEditBook(book.Id)">
+                                        Edytuj
+                                    </button>
+                                    <button class="btn btn-sm btn-danger"
+                                            @onclick="() => HandleDeleteBook(book.Id, book.Title)">
+                                        Usuń
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                @successMessage
+                <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<Book>? books;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooks();
+    }
+
+    private async Task LoadBooks()
+    {
+        try
+        {
+            books = await BookService.GetAllBooksAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Błąd podczas ładowania książek: {ex.Message}";
+        }
+    }
+
+    private async Task HandleDeleteBook(int id, string title)
+    {
+        if (await JSInterop.InvokeAsync<bool>("confirm", $"Czy na pewno chcesz usunąć '{title}'?"))
+        {
+            try
+            {
+                var success = await BookService.DeleteBookAsync(id);
+                if (success)
+                {
+                    successMessage = "Książka usunięta";
+                    await LoadBooks();
+                }
+                else
+                {
+                    errorMessage = "Nie udało się usunąć książki";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Błąd: {ex.Message}";
+            }
+        }
+    }
+
+    private void NavigateToAddBook()
+    {
+        Navigation.NavigateTo("/addbook");
+    }
+
+    private void NavigateToEditBook(int bookId)
+    {
+        Navigation.NavigateTo($"/editbook/{bookId}");
+    }
+
+    private void HandleLogout()
+    {
+        SessionService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+
+    [Inject]
+    private IJSRuntime JSInterop { get; set; } = null!;
+}

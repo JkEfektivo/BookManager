@@ -1,8 +1,21 @@
 using BookManager.Components;
+using BookManager.Data;
+using BookManager.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<IBookService, BookService>();
+
+// Add DbContext
+builder.Services.AddDbContext<BookManagerContext>(options =>
+    options.UseSqlite("Data Source=app.db"));
+
+// Add Controllers
+builder.Services.AddControllers();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -21,7 +34,17 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+// Map API Controllers
+app.MapControllers();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// Initialize database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<BookManagerContext>();
+    context.Database.EnsureCreated();
+}
 
 app.Run();

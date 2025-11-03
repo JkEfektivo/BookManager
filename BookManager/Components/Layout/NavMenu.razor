@@ -1,6 +1,15 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+@using BookManager.Services
+@inject ISessionService SessionService
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BookManager</a>
+        <a class="navbar-brand" href="/dashboard">📚 BookManager</a>
+        <span class="navbar-text ms-auto">
+            @if (!string.IsNullOrEmpty(SessionService.CurrentUser))
+            {
+                <span>Zalogowano jako: <strong>@SessionService.CurrentUser</strong></span>
+            }
+        </span>
     </div>
 </div>
 
@@ -9,20 +18,14 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            <NavLink class="nav-link" href="dashboard" Match="NavLinkMatch.All">
+                <span class="oi oi-list" aria-hidden="true"></span> Moja biblioteka
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            <NavLink class="nav-link" href="addbook">
+                <span class="oi oi-plus" aria-hidden="true"></span> Dodaj książkę
             </NavLink>
         </div>
     </nav>

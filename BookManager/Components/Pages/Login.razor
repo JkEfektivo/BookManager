@@ -1,5 +1,10 @@
+@page "/"
 @page "/login"
+@layout Layout.LoginLayout
 @rendermode InteractiveServer
+@using BookManager.Services
+@inject ISessionService SessionService
+@inject NavigationManager Navigation
 
 <div class="login-container">
     <div class="login-box">
@@ -8,7 +13,15 @@
             <p>Zarządzaj swoją biblioteką</p>
         </div>
 
-        <form>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+            </div>
+        }
+
+        <form @onsubmit="HandleLogin">
             <div class="mb-3">
                 <label for="username" class="form-label">Użytkownik</label>
                 <input
@@ -16,7 +29,9 @@
                     class="form-control"
                     id="username"
                     placeholder="Wpisz użytkownika"
-                    required>
+                    @bind="username"
+                    required
+                    disabled="@isLoading">
             </div>
 
             <div class="mb-3">
@@ -26,10 +41,22 @@
                     class="form-control"
                     id="password"
                     placeholder="Wpisz hasło"
-                    required>
+                    @bind="password"
+                    required
+                    disabled="@isLoading">
             </div>
 
-            <button type="submit" class="btn btn-primary w-100">Zaloguj się</button>
+            <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Logowanie...</span>
+                }
+                else
+                {
+                    <span>Zaloguj się</span>
+                }
+            </button>
         </form>
 
         <div class="login-footer">
@@ -118,3 +145,32 @@
         font-size: 13px;
     }
 </style>
+
+@code {
+    private string username = string.Empty;
+    private string password = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+        isLoading = true;
+
+        await Task.Delay(500); // Symulacja opóźnienia
+
+        // Walidacja hardcoded credentials: admin/admin
+        if (username.Equals("admin", StringComparison.OrdinalIgnoreCase) && password == "admin")
+        {
+            SessionService.Login(username);
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            errorMessage = "Niepoprawne dane logowania. Spróbuj admin/admin";
+            password = string.Empty;
+        }
+
+        isLoading = false;
+    }
+}

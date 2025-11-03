@@ -1,0 +1,110 @@
+@page "/addbook"
+@rendermode InteractiveServer
+@using BookManager.Services
+@using BookManager.Models
+@inject ISessionService SessionService
+@inject IBookService BookService
+@inject NavigationManager Navigation
+
+@if (!SessionService.IsAuthenticated)
+{
+    <div class="alert alert-danger mt-5" role="alert">
+        <div class="container">
+            <h4>Dostęp zabroniony</h4>
+            <p>Musisz się zalogować aby dodawać książki.</p>
+            <a href="/login" class="btn btn-primary">Powrót do logowania</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h1>Dodaj nową książkę</h1>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @errorMessage
+                        <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                    </div>
+                }
+
+                <EditForm Model="@newBook" OnValidSubmit="HandleAddBook">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Tytuł <span class="text-danger">*</span></label>
+                        <InputText id="title" @bind-Value="newBook.Title" class="form-control" placeholder="Wpisz tytuł książki" />
+                        <ValidationMessage For="@(() => newBook.Title)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="author" class="form-label">Autor <span class="text-danger">*</span></label>
+                        <InputText id="author" @bind-Value="newBook.Author" class="form-control" placeholder="Wpisz nazwę autora" />
+                        <ValidationMessage For="@(() => newBook.Author)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Rok wydania <span class="text-danger">*</span></label>
+                        <InputNumber id="year" @bind-Value="newBook.YearPublished" class="form-control" placeholder="Wpisz rok wydania" />
+                        <ValidationMessage For="@(() => newBook.YearPublished)" />
+                        <small class="form-text text-muted">Rok musi być między 1000 a @DateTime.Now.Year</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span>Dodawanie...</span>
+                            }
+                            else
+                            {
+                                <span>Dodaj</span>
+                            }
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="HandleCancel">Anuluj</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Book newBook = new();
+    private string errorMessage = string.Empty;
+    private bool isLoading = false;
+
+    private async Task HandleAddBook()
+    {
+        errorMessage = string.Empty;
+        isLoading = true;
+
+        try
+        {
+            await BookService.CreateBookAsync(newBook);
+            Navigation.NavigateTo("/dashboard");
+        }
+        catch (ArgumentException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Błąd: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void HandleCancel()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+}

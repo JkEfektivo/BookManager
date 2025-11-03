@@ -1,0 +1,27 @@
+@using BookManager.Services
+@inject ISessionService SessionService
+@inject NavigationManager Navigation
+
+@if (SessionService.IsAuthenticated)
+{
+    @ChildContent
+}
+else
+{
+    <div class="alert alert-warning" role="alert">
+        Musisz się zalogować aby uzyskać dostęp do tej strony.
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (!SessionService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+}
