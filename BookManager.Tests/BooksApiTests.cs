@@ -46,7 +46,7 @@ public class BooksApiTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal("Andrzej Sapkowski", createdBook.Author);
         Assert.Equal(1993, createdBook.YearPublished);
 
-        // 2. READ - Użytkownik widzi książkę na liście
+        // 2.  READ - Użytkownik widzi książkę na liście
         var getAllResponse = await _client.GetAsync("/api/books");
         Assert.Equal(HttpStatusCode.OK, getAllResponse.StatusCode);
 
