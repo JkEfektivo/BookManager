@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if exist \"C:\\PROGRAMOWANIE\\BookManager\\BookManager\\app.db\" del \"C:\\PROGRAMOWANIE\\BookManager\\BookManager\\app.db\")"
+    ]
+  }
+}
