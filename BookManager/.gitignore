@@ -9,7 +9,6 @@ obj/
 [Pp]ublish/
 packages/
 
-EfektywnyKomornik.WebApp.Server/appsettings.json
 
 ~$*
 *.suo
@@ -24,3 +23,6 @@ EfektywnyKomornik.WebApp.Server/appsettings.json
 *.7z
 *.bak
 *.update
+
+**/bin/
+**/obj/
