@@ -1,0 +1,32 @@
+
+.vs/
+.svn/
+
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+[Pp]ublish/
+packages/
+
+
+~$*
+*.suo
+*.user
+*.Cache
+*.psess
+
+*.exe
+*.dll
+*.pdb
+*.zip
+*.7z
+*.bak
+*.update
+
+# Wykluczenie bin/obj we wszystkich projektach
+**/bin/
+**/obj/
+
+# Baza danych SQLite
+*.db
