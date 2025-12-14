@@ -48,3 +48,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Umożliwia dostęp do Program dla testów integracyjnych
+public partial class Program { }
